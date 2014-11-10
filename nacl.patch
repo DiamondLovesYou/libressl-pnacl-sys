@@ -1,0 +1,393 @@
+diff -uNr --unidirectional-new-file '--exclude=.git' '--exclude=Cargo.toml' '--exclude=build.rs' ./configure /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/configure
+--- ./configure	2014-07-11 12:42:02.000000000 -0500
++++ /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/configure	2014-08-10 15:49:54.979174464 -0500
+@@ -698,6 +698,8 @@
+ LDFLAGS
+ CFLAGS
+ CC
++TARGET_NACL_FALSE
++TARGET_NACL_TRUE
+ TARGET_SOLARIS_FALSE
+ TARGET_SOLARIS_TRUE
+ TARGET_LINUX_FALSE
+@@ -2908,28 +2910,33 @@
+ 
+ USER_CFLAGS="-O2 $CFLAGS"
+ 
+-CFLAGS="$CFLAGS -Wall -Werror -std=c99 -g -Wno-pointer-sign"
++CFLAGS="$CFLAGS -Wall -Werror -g -Wno-pointer-sign"
+ 
+ case $target_os in
+ 	*darwin*)
+ 		TARGET_OS=darwin;
+ 		LDFLAGS="$LDFLAGS -Qunused-arguments"
++                CFLAGS="$CFLAGS -std=c99"
+ 		;;
+ 	*linux*)
+ 		TARGET_OS=linux;
+-		CFLAGS="$CFLAGS -D_BSD_SOURCE -D_POSIX_SOURCE -D_GNU_SOURCE"
++		CFLAGS="$CFLAGS -D_BSD_SOURCE -D_POSIX_SOURCE -D_GNU_SOURCE -std=c99"
+ 		;;
+ 	*solaris*)
+ 		TARGET_OS=solaris;
+-		CFLAGS="$CFLAGS -D__EXTENSIONS__ -D_XOPEN_SOURCE=600 -DBSD_COMP"
++		CFLAGS="$CFLAGS -D__EXTENSIONS__ -D_XOPEN_SOURCE=600 -DBSD_COMP -std=c99"
+ 		PLATFORM_LDADD='-lnsl -lsocket'
+ 
+ 		;;
+ 	*openbsd*)
++                CFLAGS="$CFLAGS -std=c99"
+ 
+ $as_echo "#define HAVE_ATTRIBUTE__BOUNDED__ 1" >>confdefs.h
+ 
+ 		;;
++        *nacl*)
++                TARGET_OS=nacl;
++                ;;
+ 	*) ;;
+ esac
+ 
+@@ -2957,6 +2964,14 @@
+   TARGET_SOLARIS_FALSE=
+ fi
+ 
++ if test x$TARGET_OS = xnacl; then
++  TARGET_NACL_TRUE=
++  TARGET_NACL_FALSE='#'
++else
++  TARGET_NACL_TRUE='#'
++  TARGET_NACL_FALSE=
++fi
++
+ 
+ ac_ext=c
+ ac_cpp='$CPP $CPPFLAGS'
+@@ -12671,6 +12686,10 @@
+   as_fn_error $? "conditional \"TARGET_SOLARIS\" was never defined.
+ Usually this means the macro was only invoked conditionally." "$LINENO" 5
+ fi
++if test -z "${TARGET_NACL_TRUE}" && test -z "${TARGET_NACL_FALSE}"; then
++  as_fn_error $? "conditional \"TARGET_NACL\" was never defined.
++Usually this means the macro was only invoked conditionally." "$LINENO" 5
++fi
+ if test -z "${AMDEP_TRUE}" && test -z "${AMDEP_FALSE}"; then
+   as_fn_error $? "conditional \"AMDEP\" was never defined.
+ Usually this means the macro was only invoked conditionally." "$LINENO" 5
+diff -uNr --unidirectional-new-file '--exclude=.git' '--exclude=Cargo.toml' '--exclude=build.rs' ./configure.ac /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/configure.ac
+--- ./configure.ac	2014-07-11 11:16:40.000000000 -0500
++++ /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/configure.ac	2014-07-23 15:37:20.260466865 -0500
+@@ -6,31 +6,37 @@
+ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+ 
+ AC_SUBST([USER_CFLAGS], "-O2 $CFLAGS")
+-CFLAGS="$CFLAGS -Wall -Werror -std=c99 -g -Wno-pointer-sign"
++CFLAGS="$CFLAGS -Wall -Werror -g -Wno-pointer-sign"
+ 
+ case $target_os in
+ 	*darwin*)
+ 		TARGET_OS=darwin;
+ 		LDFLAGS="$LDFLAGS -Qunused-arguments"
++                CFLAGS="$CFLAGS -std=c99"
+ 		;;
+ 	*linux*)
+ 		TARGET_OS=linux;
+-		CFLAGS="$CFLAGS -D_BSD_SOURCE -D_POSIX_SOURCE -D_GNU_SOURCE"
++		CFLAGS="$CFLAGS -D_BSD_SOURCE -D_POSIX_SOURCE -D_GNU_SOURCE -std=c99"
+ 		;;
+ 	*solaris*)
+ 		TARGET_OS=solaris;
+-		CFLAGS="$CFLAGS -D__EXTENSIONS__ -D_XOPEN_SOURCE=600 -DBSD_COMP"
++		CFLAGS="$CFLAGS -D__EXTENSIONS__ -D_XOPEN_SOURCE=600 -DBSD_COMP -std=c99"
+ 		AC_SUBST([PLATFORM_LDADD], ['-lnsl -lsocket'])
+ 		;;
+ 	*openbsd*)
++                CFLAGS="$CFLAGS -std=c99"
+ 		AC_DEFINE([HAVE_ATTRIBUTE__BOUNDED__], [1], [OpenBSD gcc has bounded])
+ 		;;
++        *nacl*)
++                TARGET_OS=nacl;
++                ;;
+ 	*) ;;
+ esac
+ 
+ AM_CONDITIONAL(TARGET_DARWIN, test x$TARGET_OS = xdarwin)
+ AM_CONDITIONAL(TARGET_LINUX, test x$TARGET_OS = xlinux)
+ AM_CONDITIONAL(TARGET_SOLARIS, test x$TARGET_OS = xsolaris)
++AM_CONDITIONAL(TARGET_NACL, test x$TARGET_OS = xnacl)
+ 
+ AC_PROG_CC
+ AC_PROG_LIBTOOL
+diff -uNr --unidirectional-new-file '--exclude=.git' '--exclude=Cargo.toml' '--exclude=build.rs' ./crypto/bio/b_sock.c /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/bio/b_sock.c
+--- ./crypto/bio/b_sock.c	2014-07-11 12:41:25.000000000 -0500
++++ /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/bio/b_sock.c	2014-07-23 15:37:20.273800198 -0500
+@@ -462,5 +462,8 @@
+ int
+ BIO_socket_nbio(int s, int mode)
+ {
++#ifdef __pnacl__
++#define FIONBIO		0x5421
++#endif
+ 	return (BIO_socket_ioctl(s, FIONBIO, &mode) == 0);
+ }
+diff -uNr --unidirectional-new-file '--exclude=.git' '--exclude=Cargo.toml' '--exclude=build.rs' ./crypto/bio/bss_bio.c /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/bio/bss_bio.c
+--- ./crypto/bio/bss_bio.c	2014-07-11 12:41:25.000000000 -0500
++++ /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/bio/bss_bio.c	2014-07-23 15:37:20.277133532 -0500
+@@ -293,6 +293,10 @@
+ 	return num;
+ }
+ 
++#ifdef __pnacl__
++#define SSIZE_MAX LONG_MAX
++#endif
++
+ static ssize_t
+ bio_nread(BIO *bio, char **buf, size_t num_)
+ {
+diff -uNr --unidirectional-new-file '--exclude=.git' '--exclude=Cargo.toml' '--exclude=build.rs' ./crypto/bio/bss_log.c /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/bio/bss_log.c
+--- ./crypto/bio/bss_log.c	2014-07-11 12:41:25.000000000 -0500
++++ /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/bio/bss_log.c	2014-07-23 15:37:20.277133532 -0500
+@@ -65,7 +65,9 @@
+ #include <errno.h>
+ #include <stdio.h>
+ #include <string.h>
++#ifndef __pnacl__
+ #include <syslog.h>
++#endif
+ 
+ #include <openssl/buffer.h>
+ #include <openssl/err.h>
+diff -uNr --unidirectional-new-file '--exclude=.git' '--exclude=Cargo.toml' '--exclude=build.rs' ./crypto/compat/getentropy_nacl.c /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/compat/getentropy_nacl.c
+--- ./crypto/compat/getentropy_nacl.c	1969-12-31 18:00:00.000000000 -0600
++++ /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/compat/getentropy_nacl.c	2014-07-23 15:37:20.283800198 -0500
+@@ -0,0 +1,98 @@
++/*	$OpenBSD: getentropy_linux.c,v 1.17 2014/07/08 09:30:33 beck Exp $	*/
++
++/*
++ * Copyright (c) 2014 Theo de Raadt <deraadt@openbsd.org>
++ * Copyright (c) 2014 Richard Diamond <wichard@vitalitystudios.com>
++ *
++ * Permission to use, copy, modify, and distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++
++#include <errno.h>
++#include <fcntl.h>
++#include <stdio.h>
++#include <sys/ioctl.h>
++#include <sys/stat.h>
++#include <unistd.h>
++
++/* NOTE: There is no fallback. Don't try to write one. If we can't access the
++ * virtual /dev/urandom, we return -1. End of story.
++ */
++
++/*
++ * Basic sanity checking; wish we could do better.
++ */
++static int
++gotdata(char *buf, size_t len)
++{
++	char	any_set = 0;
++	size_t	i;
++
++	for (i = 0; i < len; ++i)
++		any_set |= buf[i];
++	if (any_set == 0)
++		return -1;
++	return 0;
++}
++
++int getentropy(void *buf, size_t len)
++{
++	struct stat st;
++	size_t i;
++	int fd, flags;
++	int save_errno = errno;
++
++start:
++
++        flags = O_RDONLY;
++#ifdef O_NOFOLLOW
++        flags |= O_NOFOLLOW;
++#endif
++#ifdef O_CLOEXEC
++        flags |= O_CLOEXEC;
++#endif
++	fd = open("/dev/urandom", flags, 0);
++	if (fd == -1) {
++		if (errno == EINTR)
++			goto start;
++		goto nodevrandom;
++	}
++#ifndef O_CLOEXEC
++	fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | FD_CLOEXEC);
++#endif
++
++	/* Lightly verify that the device node looks sane */
++	if (fstat(fd, &st) == -1 || !S_ISCHR(st.st_mode)) {
++		close(fd);
++		goto nodevrandom;
++	}
++	for (i = 0; i < len; ) {
++		size_t wanted = len - i;
++		ssize_t ret = read(fd, buf + i, wanted);
++
++		if (ret == -1) {
++			if (errno == EAGAIN || errno == EINTR)
++				continue;
++			close(fd);
++			goto nodevrandom;
++		}
++		i += ret;
++	}
++	close(fd);
++	if (gotdata(buf, len) == 0) {
++		errno = save_errno;
++		return 0;		/* satisfied */
++	}
++nodevrandom:
++	errno = EIO;
++	return -1;
++}
+diff -uNr --unidirectional-new-file '--exclude=.git' '--exclude=Cargo.toml' '--exclude=build.rs' ./crypto/Makefile.am /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/Makefile.am
+--- ./crypto/Makefile.am	2014-07-11 12:41:27.000000000 -0500
++++ /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/Makefile.am	2014-07-23 15:37:20.260466865 -0500
+@@ -53,6 +53,9 @@
+ if TARGET_SOLARIS
+ libcompat_la_SOURCES += compat/getentropy_solaris.c
+ endif
++if TARGET_NACL
++libcompat_la_SOURCES += compat/getentropy_nacl.c
++endif
+ endif
+ 
+ endif
+diff -uNr --unidirectional-new-file '--exclude=.git' '--exclude=Cargo.toml' '--exclude=build.rs' ./crypto/Makefile.in /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/Makefile.in
+--- ./crypto/Makefile.in	2014-07-11 12:42:04.000000000 -0500
++++ /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/Makefile.in	2014-07-25 13:55:06.225534475 -0500
+@@ -91,7 +91,8 @@
+ @NO_ARC4RANDOM_BUF_TRUE@@NO_GETENTROPY_TRUE@@TARGET_LINUX_TRUE@am__append_7 = compat/getentropy_linux.c
+ @NO_ARC4RANDOM_BUF_TRUE@@NO_GETENTROPY_TRUE@@TARGET_DARWIN_TRUE@am__append_8 = compat/getentropy_osx.c
+ @NO_ARC4RANDOM_BUF_TRUE@@NO_GETENTROPY_TRUE@@TARGET_SOLARIS_TRUE@am__append_9 = compat/getentropy_solaris.c
+-@NO_ISSETUGID_TRUE@am__append_10 = compat/issetugid_linux.c
++@NO_ARC4RANDOM_BUF_TRUE@@NO_GETENTROPY_TRUE@@TARGET_NACL_TRUE@am__append_10 = compat/getentropy_nacl.c
++@NO_ISSETUGID_TRUE@am__append_11 = compat/issetugid_linux.c
+ subdir = crypto
+ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+ am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
+@@ -137,7 +138,8 @@
+ 	compat/reallocarray.c compat/timingsafe_memcmp.c \
+ 	compat/timingsafe_bcmp.c compat/arc4random.c \
+ 	compat/getentropy_linux.c compat/getentropy_osx.c \
+-	compat/getentropy_solaris.c compat/issetugid_linux.c
++	compat/getentropy_solaris.c compat/getentropy_nacl.c \
++	compat/issetugid_linux.c
+ am__dirstamp = $(am__leading_dot)dirstamp
+ @NO_STRLCAT_TRUE@am__objects_1 = compat/libcompat_la-strlcat.lo
+ @NO_STRLCPY_TRUE@am__objects_2 = compat/libcompat_la-strlcpy.lo
+@@ -150,12 +152,13 @@
+ @NO_ARC4RANDOM_BUF_TRUE@@NO_GETENTROPY_TRUE@@TARGET_LINUX_TRUE@am__objects_7 = compat/libcompat_la-getentropy_linux.lo
+ @NO_ARC4RANDOM_BUF_TRUE@@NO_GETENTROPY_TRUE@@TARGET_DARWIN_TRUE@am__objects_8 = compat/libcompat_la-getentropy_osx.lo
+ @NO_ARC4RANDOM_BUF_TRUE@@NO_GETENTROPY_TRUE@@TARGET_SOLARIS_TRUE@am__objects_9 = compat/libcompat_la-getentropy_solaris.lo
+-@NO_ISSETUGID_TRUE@am__objects_10 =  \
++@NO_ARC4RANDOM_BUF_TRUE@@NO_GETENTROPY_TRUE@@TARGET_NACL_TRUE@am__objects_10 = compat/libcompat_la-getentropy_nacl.lo
++@NO_ISSETUGID_TRUE@am__objects_11 =  \
+ @NO_ISSETUGID_TRUE@	compat/libcompat_la-issetugid_linux.lo
+ am_libcompat_la_OBJECTS = $(am__objects_1) $(am__objects_2) \
+ 	$(am__objects_3) $(am__objects_4) $(am__objects_5) \
+ 	$(am__objects_6) $(am__objects_7) $(am__objects_8) \
+-	$(am__objects_9) $(am__objects_10)
++	$(am__objects_9) $(am__objects_10) $(am__objects_11)
+ libcompat_la_OBJECTS = $(am_libcompat_la_OBJECTS)
+ AM_V_lt = $(am__v_lt_@AM_V@)
+ am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+@@ -663,7 +666,7 @@
+ libcompat_la_SOURCES = $(am__append_1) $(am__append_2) $(am__append_3) \
+ 	$(am__append_4) $(am__append_5) $(am__append_6) \
+ 	$(am__append_7) $(am__append_8) $(am__append_9) \
+-	$(am__append_10)
++	$(am__append_10) $(am__append_11)
+ noinst_HEADERS = des/ncbc_enc.c compat/thread_private.h \
+ 	compat/chacha_private.h cryptlib.h md32_common.h o_time.h \
+ 	aes/aes_locl.h asn1/asn1_locl.h asn1/charmap.h bf/bf_locl.h \
+@@ -924,6 +927,8 @@
+ 	compat/$(DEPDIR)/$(am__dirstamp)
+ compat/libcompat_la-getentropy_solaris.lo: compat/$(am__dirstamp) \
+ 	compat/$(DEPDIR)/$(am__dirstamp)
++compat/libcompat_la-getentropy_nacl.lo: compat/$(am__dirstamp) \
++	compat/$(DEPDIR)/$(am__dirstamp)
+ compat/libcompat_la-issetugid_linux.lo: compat/$(am__dirstamp) \
+ 	compat/$(DEPDIR)/$(am__dirstamp)
+ 
+@@ -2527,6 +2532,7 @@
+ @AMDEP_TRUE@@am__include@ @am__quote@comp/$(DEPDIR)/libcrypto_la-comp_lib.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@compat/$(DEPDIR)/libcompat_la-arc4random.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@compat/$(DEPDIR)/libcompat_la-getentropy_linux.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@compat/$(DEPDIR)/libcompat_la-getentropy_nacl.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@compat/$(DEPDIR)/libcompat_la-getentropy_osx.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@compat/$(DEPDIR)/libcompat_la-getentropy_solaris.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@compat/$(DEPDIR)/libcompat_la-issetugid_linux.Plo@am__quote@
+@@ -2984,6 +2990,13 @@
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+ @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcompat_la_CFLAGS) $(CFLAGS) -c -o compat/libcompat_la-getentropy_solaris.lo `test -f 'compat/getentropy_solaris.c' || echo '$(srcdir)/'`compat/getentropy_solaris.c
+ 
++compat/libcompat_la-getentropy_nacl.lo: compat/getentropy_nacl.c
++@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcompat_la_CFLAGS) $(CFLAGS) -MT compat/libcompat_la-getentropy_nacl.lo -MD -MP -MF compat/$(DEPDIR)/libcompat_la-getentropy_nacl.Tpo -c -o compat/libcompat_la-getentropy_nacl.lo `test -f 'compat/getentropy_nacl.c' || echo '$(srcdir)/'`compat/getentropy_nacl.c
++@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) compat/$(DEPDIR)/libcompat_la-getentropy_nacl.Tpo compat/$(DEPDIR)/libcompat_la-getentropy_nacl.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='compat/getentropy_nacl.c' object='compat/libcompat_la-getentropy_nacl.lo' libtool=yes @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcompat_la_CFLAGS) $(CFLAGS) -c -o compat/libcompat_la-getentropy_nacl.lo `test -f 'compat/getentropy_nacl.c' || echo '$(srcdir)/'`compat/getentropy_nacl.c
++
+ compat/libcompat_la-issetugid_linux.lo: compat/issetugid_linux.c
+ @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcompat_la_CFLAGS) $(CFLAGS) -MT compat/libcompat_la-issetugid_linux.lo -MD -MP -MF compat/$(DEPDIR)/libcompat_la-issetugid_linux.Tpo -c -o compat/libcompat_la-issetugid_linux.lo `test -f 'compat/issetugid_linux.c' || echo '$(srcdir)/'`compat/issetugid_linux.c
+ @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) compat/$(DEPDIR)/libcompat_la-issetugid_linux.Tpo compat/$(DEPDIR)/libcompat_la-issetugid_linux.Plo
+diff -uNr --unidirectional-new-file '--exclude=.git' '--exclude=Cargo.toml' '--exclude=build.rs' ./crypto/o_str.c /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/o_str.c
+--- ./crypto/o_str.c	2014-07-11 12:41:25.000000000 -0500
++++ /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/o_str.c	2014-07-23 15:37:20.307133533 -0500
+@@ -11,11 +11,26 @@
+ int
+ OPENSSL_strncasecmp(const char *str1, const char *str2, size_t n)
+ {
++#if !defined(__pnacl__)
+ 	return strncasecmp(str1, str2, n);
++#else
++        size_t i = 0;
++        for(; str1[i] == str2[i] &&
++              str1[i] != '\0' && str2[i] != '\0' &&
++              i < n; ++i) { }
++        return (int)(str1[i] - str2[i]);
++#endif
+ }
+ 
+ int
+ OPENSSL_strcasecmp(const char *str1, const char *str2)
+ {
++#if !defined(__pnacl__)
+ 	return strcasecmp(str1, str2);
++#else
++        size_t i = 0;
++        for(; str1[i] == str2[i] &&
++              str1[i] != '\0' && str2[i] != '\0'; ++i) { }
++        return (int)(str1[i] - str2[i]);
++#endif
+ }
+diff -uNr --unidirectional-new-file '--exclude=.git' '--exclude=Cargo.toml' '--exclude=build.rs' ./crypto/rand/randfile.c /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/rand/randfile.c
+--- ./crypto/rand/randfile.c	2014-07-11 12:41:26.000000000 -0500
++++ /home/dick/workspace/src/hahbee/engine/deps/ppapi/deps/libressl-2.0.0/crypto/rand/randfile.c	2014-07-23 15:37:20.313800200 -0500
+@@ -67,6 +67,7 @@
+ 
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#include <sys/unistd.h>
+ #include <fcntl.h>
+ 
+ #undef BUFSIZE
