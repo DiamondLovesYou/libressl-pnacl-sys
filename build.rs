@@ -22,14 +22,15 @@ use std::os::getcwd;
 pub fn main() {
     let libs = [(Path::new("ssl/.libs/"), "ssl:static".to_string()),
                 (Path::new("crypto/.libs/"), "crypto:static".to_string())];
-    let mut cfg = helper::ConfigureMake::new(["--disable-shared".to_string(),
-                                              "--without-pic".to_string(),
-                                              "CFLAGS=-DNO_SYSLOG".to_string()],
-                                             libs);
+    let mut cfg = helper::ConfigureMake::new
+        (&["--disable-shared".to_string(),
+           "--without-pic".to_string(),
+           "CFLAGS=-DNO_SYSLOG".to_string()],
+         &libs);
 
     cfg.make_only_dir(Path::new("ssl"))
         .make_only_dir(Path::new("crypto"));
 
-    cfg.configure(Some(getcwd().join("libressl")));
+    cfg.configure(Some(getcwd().unwrap().join("libressl")));
     cfg.make();
 }
