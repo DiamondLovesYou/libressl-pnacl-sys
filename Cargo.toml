@@ -1,7 +1,9 @@
 [package]
 name = "libressl-pnacl-sys"
-version = "2.0.1"
-authors = ["Richard Diamond <wichard@vitalitystudios.com>"]
+version = "2.0.2"
+authors = ["Richard Diamond <wichard@vitalitystudios.com>",
+           "Alex Crichton <alex@alexcrichton.com>",
+           "Steven Fackler <sfackler@gmail.com>"]
 build = "build.rs"
 description = "openssl-sys provider for PNaCl/NaCl targets."
 license = "MIT"
