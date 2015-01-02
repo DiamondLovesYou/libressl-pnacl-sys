@@ -1,14 +1,14 @@
 [package]
 name = "libressl-pnacl-sys"
-version = "2.1.2"
+version = "2.1.3"
 authors = ["Richard Diamond <wichard@vitalitystudios.com>"]
 build = "build.rs"
 description = "openssl linking provider for PNaCl/NaCl targets."
 license = "MIT"
 repository = "https://github.com/DiamondLovesYou/libressl-pnacl-sys"
 
-[[lib]]
-name = "cross-platform-ssl-link"
+[lib]
+name = "libressl-pnacl-sys"
 path = "lib.rs"
 
 [build-dependencies.pnacl-build-helper]
