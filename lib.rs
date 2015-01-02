@@ -1,5 +1,5 @@
 
-#[link(name = "cypto", kind = "static")]
+#[link(name = "crypto", kind = "static")]
 #[link(name = "ssl", kind = "static")]
 extern {}
 
