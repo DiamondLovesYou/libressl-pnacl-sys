@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Rust PPApi. If not, see <http://www.gnu.org/licenses/>.
 
+#![allow(unstable)]
+
 extern crate "pnacl-build-helper" as helper;
 
 use std::os::getcwd;
@@ -22,15 +24,17 @@ use std::os::getcwd;
 pub fn main() {
     let libs = [(Path::new("ssl/.libs/"), "ssl:static".to_string()),
                 (Path::new("crypto/.libs/"), "crypto:static".to_string())];
+    let src_dir = getcwd().unwrap().join("libressl");
     let mut cfg = helper::ConfigureMake::new
         (&["--disable-shared".to_string(),
            "--without-pic".to_string(),
            "CFLAGS=-DNO_SYSLOG".to_string()],
-         &libs);
+         &libs,
+         src_dir);
 
     cfg.make_only_dir(Path::new("ssl"))
         .make_only_dir(Path::new("crypto"));
 
-    cfg.configure(Some(getcwd().unwrap().join("libressl")));
+    cfg.configure();
     cfg.make();
 }
