@@ -15,16 +15,20 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Rust PPApi. If not, see <http://www.gnu.org/licenses/>.
 
-#![allow(unstable)]
+extern crate pnacl_build_helper as helper;
 
-extern crate "pnacl-build-helper" as helper;
-
-use std::os::getcwd;
+use std::env::current_dir;
+use std::path::Path;
 
 pub fn main() {
-    let libs = [(Path::new("ssl/.libs/"), "ssl:static".to_string()),
-                (Path::new("crypto/.libs/"), "crypto:static".to_string())];
-    let src_dir = getcwd().unwrap().join("libressl");
+    let libs = [(Path::new("ssl/.libs/").to_path_buf(),
+                 "ssl:static".to_string()),
+                (Path::new("crypto/.libs/").to_path_buf(),
+                 "crypto:static".to_string())];
+    let mut src_dir = current_dir()
+        .unwrap();
+    src_dir.push("libressl");
+
     let mut cfg = helper::ConfigureMake::new
         (&["--disable-shared".to_string(),
            "--without-pic".to_string(),
@@ -32,8 +36,8 @@ pub fn main() {
          &libs,
          src_dir);
 
-    cfg.make_only_dir(Path::new("ssl"))
-        .make_only_dir(Path::new("crypto"));
+    cfg.make_only_dir(Path::new("ssl").to_path_buf())
+        .make_only_dir(Path::new("crypto").to_path_buf());
 
     cfg.configure();
     cfg.make();
